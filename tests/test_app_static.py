@@ -56,6 +56,20 @@ class MarinQrStaticTests(unittest.TestCase):
         ])
         self.assertNotRegex(self.domains_js, r'domain:\s*["\']\*')
 
+    def test_optional_public_https_mode_is_documented(self) -> None:
+        parser = SourceParser(self.html)
+        self.assertIn("destination-mode", parser.elements)
+        self.assertIn("hidden", parser.elements["destination-mode"])
+        self.assertEqual(parser.elements["destination-mode"].get("role"), "status")
+        self.assertIn("allowed-websites-help", parser.elements)
+        self.assertIn("Any HTTPS link", self.html)
+        self.assertIn("https://marincountygov.github.io/marin-qr/?dest=any", self.html)
+        self.assertIn('parameters.getAll("dest")', self.app_js)
+        self.assertIn('overrides.length === 1 && overrides[0] === "any"', self.app_js)
+        self.assertIn('(!allowAnyHttpsDestination && !isAllowedHostname(hostname))', self.app_js)
+        self.assertIn('refs.destinationMode.hidden = !allowAnyHttpsDestination', self.app_js)
+        self.assertIn('refs.allowedWebsitesHelp.hidden = allowAnyHttpsDestination', self.app_js)
+
     def test_app_has_no_network_or_persistent_storage_api(self) -> None:
         app_sources = "\n".join((self.app_js, self.image_js, self.safety_js))
         for name in (

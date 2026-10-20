@@ -53,6 +53,14 @@
     qrColorPicker: false
   });
 
+  // The app URL can opt into broader destinations. This is a public mode,
+  // not an authentication or access-control mechanism.
+  const allowAnyHttpsDestination = (() => {
+    const parameters = new URLSearchParams(window.location.search);
+    const overrides = parameters.getAll("dest");
+    return overrides.length === 1 && overrides[0] === "any";
+  })();
+
   const state = {
     parameterId: 0,
     updateTimer: null,
@@ -125,7 +133,7 @@
     }
 
     const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
-    if (!hostname || !isAllowedHostname(hostname)) {
+    if (!hostname || (!allowAnyHttpsDestination && !isAllowedHostname(hostname))) {
       return { error: "Use a link from an approved Marin County website." };
     }
 
@@ -1138,6 +1146,8 @@
       form: byId("qr-form"),
       destination: byId("destination-url"),
       destinationError: byId("destination-error"),
+      destinationMode: byId("destination-mode"),
+      allowedWebsitesHelp: byId("allowed-websites-help"),
       parameterList: byId("parameter-list"),
       addParameter: byId("add-parameter"),
       colorField: byId("qr-color-field"),
@@ -1186,6 +1196,11 @@
     }
 
     refs.colorField.hidden = !FEATURES.qrColorPicker;
+    refs.destinationMode.hidden = !allowAnyHttpsDestination;
+    refs.allowedWebsitesHelp.hidden = allowAnyHttpsDestination;
+    if (allowAnyHttpsDestination) {
+      refs.destination.setAttribute("aria-describedby", "destination-mode destination-error");
+    }
     bindEvents();
     addParameterRow(DEFAULT_PARAMETER_NAME);
     showEmpty("Add a web address to make a QR code.");

@@ -6,13 +6,14 @@ Marin QR is a static MarinOS app that creates QR codes for approved Marin County
 - **Owner:** County of Marin
 - **Repository:** `marin-qr`
 - **Status:** Alpha
-- **Current release:** 0.2.1
+- **Current release:** 0.2.2
 - **Deployment target:** GitHub Pages
 
 ## Features
 
 - Accepts a complete pasted HTTPS URL.
-- Parses the hostname with the browser `URL` API and checks it against an explicit allowlist.
+- Parses the hostname with the browser `URL` API and checks it against an explicit allowlist by default.
+- Supports a public `?dest=any` mode for any HTTPS hostname while retaining all other link safety checks.
 - Adds optional query parameters from a searchable, curated list without dropping an existing query string or fragment.
 - Supports a validated custom parameter name when the curated list does not include the needed name.
 - Shows contextual example values as placeholders only; it never inserts those examples automatically.
@@ -39,9 +40,17 @@ The source of truth is [`assets/authorized-domains.js`](assets/authorized-domain
 | `marincountygov.github.io` | Yes | No |
 | `marinmap.org` | Yes | Yes |
 
-Validation compares parsed hostnames. It does not use substring or prefix matching, so a hostname such as `marincounty.gov.example.com` is rejected.
+Validation compares parsed hostnames. It does not use substring or prefix matching, so a hostname such as `marincounty.gov.example.com` is rejected in the default mode.
 
-The allowlist is an official-tool governance control, not a universal QR security boundary. A user can still use a different QR generator or alter client-side code. Marin QR ensures that the unmodified published app generates codes only for approved destinations.
+### Any HTTPS link mode
+
+Open `https://marincountygov.github.io/marin-qr/?dest=any` to enable the optional public mode. The app then accepts HTTPS links from any hostname. It still requires HTTPS and rejects embedded credentials and nonstandard ports. It does not visit, load, or redirect to the entered link.
+
+Only one `dest` parameter with the exact value `any` activates this mode. Names and values are case-sensitive, repeated `dest` parameters do not activate it, and other parameters are ignored. For example, `?dest=ANY`, `?Dest=any`, and `?dest=any&dest=any` keep County-only restrictions.
+
+The link in the app's About page explains this mode in plain language. When active, the destination field displays an **Any HTTPS link** message and hides the County-only website list. There is no in-app toggle. This mode is not a secret permission or access-control feature: anyone can use the published query parameter. It changes the allowed QR payload, not the QR format, rendering, or download options.
+
+The allowlist is a governance default for the official tool, not a universal QR security boundary. A user can use another generator, change browser code, or open the public unrestricted mode.
 
 ## Center-image safety
 
@@ -89,7 +98,7 @@ vendor/
 index.html                 App workflow and plain-language content
 marin.yml                  MarinOS project metadata
 security.json              Machine-readable security configuration
-SPEC.md                    Authoritative 0.2.1 behavior
+SPEC.md                    Authoritative 0.2.2 behavior
 ```
 
 Do not edit `vendor/marinos/` in place. Adopt a reviewed shell release through the App Shell installer and update `platform.shell` to match its manifest.

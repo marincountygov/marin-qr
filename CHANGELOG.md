@@ -2,6 +2,18 @@
 
 All notable changes to Marin QR are documented here.
 
+## 0.2.2 - 2026-10-20
+
+### Added
+
+- Optional `?dest=any` mode to create QR codes for any HTTPS website without changing the default Marin County domain allowlist.
+- A visible, accessible mode message and a plain-language About section with a direct link to unrestricted mode.
+- Test coverage for exact override syntax, rejected duplicates and case changes, both destination modes, and retained URL validation rules.
+
+### Changed
+
+- Hide the County-only website list when unrestricted mode is active. All other QR tools and safety checks are unchanged.
+
 ## 0.2.1 - 2026-10-20
 
 ### Added

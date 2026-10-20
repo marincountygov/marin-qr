@@ -1,4 +1,4 @@
-# Marin QR 0.2.1 specification
+# Marin QR 0.2.2 specification
 
 Status: implemented
 
@@ -35,6 +35,17 @@ Additional rules:
 - Nonstandard ports are rejected.
 - Matching uses the parsed hostname, not string prefix or substring tests.
 - Paths, existing query parameters, and fragments are preserved.
+
+### Optional unrestricted mode (`?dest=any`)
+
+- By default, the domain allowlist above applies unchanged.
+- Opening the **application itself** with exactly one `dest=any` query parameter skips only the destination hostname allowlist. All other destination validations remain active, including HTTPS, credentials, and nonstandard ports.
+- Match the parsed application query parameters using `URLSearchParams`. The name `dest` and value `any` are case-sensitive, and a repeated `dest` parameter never enables the override (including percent-encoded repeats). Other application parameters are ignored.
+- The mode is fixed when the page loads. The `dest` parameter in a *pasted destination* has no effect on app mode.
+- In unrestricted mode, show **Any HTTPS link** and plain-language help below the destination input. Hide the County-only website-list disclosure and include the status/help text in `aria-describedby`. The default UI remains unchanged.
+- The About page provides a direct link to `https://marincountygov.github.io/marin-qr/?dest=any` and explains how to use it, that HTTPS is required, and that users should check the destination.
+- This public mode is not an authentication mechanism or authorization control; anyone can activate it. It must not fetch, preload, visit, or redirect to destination links.
+- Tracking, QR correction and structure protection, local rendering, PNG/SVG output, clipboard, and privacy behavior are identical in both modes.
 
 ## Tracking details
 

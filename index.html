@@ -61,10 +61,13 @@
                   aria-required="true"
                   aria-describedby="destination-error"
                   placeholder="https://hhs.marincounty.gov/services">
+                <p id="destination-mode" class="app-help-text" role="status" hidden>
+                  <strong>Any HTTPS link.</strong> You can make a QR code for any secure website.
+                </p>
                 <p id="destination-error" class="app-error" role="alert" hidden></p>
               </div>
 
-              <details class="qr-help-details">
+              <details id="allowed-websites-help" class="qr-help-details">
                 <summary>Which websites can I use?</summary>
                 <ul>
                   <li><code>marincounty.gov</code> and sites under it, such as <code>hhs.marincounty.gov</code></li>
@@ -197,6 +200,15 @@
         <template data-about>
           <p>
             Marin QR makes QR codes for approved Marin County links. Your link and center image stay in your browser. The app does not send them to a server.
+          </p>
+          <h3>Using other websites</h3>
+          <p>
+            Marin QR usually makes QR codes for approved Marin County websites. You can use it for another secure website, too.
+          </p>
+          <p>
+            Open <a href="https://marincountygov.github.io/marin-qr/?dest=any">Marin QR for any HTTPS link</a>.
+            You can also add <code>?dest=any</code> to the end of the Marin QR web address.
+            This only works for secure HTTPS links. Check the link before you share your QR code. Only use websites you trust.
           </p>
           <h3>Tracking details</h3>
           <p>

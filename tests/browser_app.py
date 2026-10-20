@@ -184,6 +184,82 @@ def expect_rejected(page, value: str, message: str) -> None:
             f"Rejected link lacks aria-invalid: {value}")
 
 
+def verify_destination_modes(context) -> None:
+    """The mode comes only from the app URL and cannot disable HTTPS checks."""
+    outside = "https://www.cdc.gov/flu/?utm_source=flyer#details"
+    forbidden = "Use a link from an approved Marin County website."
+
+    for query in (
+        "", "?dest=ANY", "?Dest=any", "?dest=county", "?dest=any&dest=any",
+        "?dest=any&dest=other", "?dest=any&%64est=any", "?other=any",
+    ):
+        page = fixture_page(context, None, f"https://fixture.example/{query}#start")
+        try:
+            page.locator(".qr-parameter-row").wait_for(state="attached")
+            require(page.locator("#destination-mode").is_hidden(),
+                    f"County-only mode incorrectly overridden by {query!r}")
+            require(page.locator("#allowed-websites-help").is_visible(),
+                    f"County-only help missing for {query!r}")
+            require(page.locator("#destination-url").get_attribute("aria-describedby")
+                    == "destination-error", f"Default field help changed for {query!r}")
+            expect_rejected(page, outside, forbidden)
+            fill_link(page, "https://hhs.marincounty.gov/healthy")
+            wait_for_final(page, "https://hhs.marincounty.gov/healthy")
+        finally:
+            page.close()
+
+    for query in ("?dest=any", "?dest=any&utm_medium=qr"):
+        page = fixture_page(context, None, f"https://fixture.example/{query}#start")
+        try:
+            page.locator(".qr-parameter-row").wait_for(state="attached")
+            require(page.locator("#destination-mode").is_visible(),
+                    f"Any-HTTPS mode not shown for {query!r}")
+            require("Any HTTPS link" in page.locator("#destination-mode").text_content(),
+                    "Unrestricted-mode text differs")
+            require(page.locator("#allowed-websites-help").is_hidden(),
+                    "County-only website list is still shown in unrestricted mode")
+            require(page.locator("#destination-url").get_attribute("aria-describedby")
+                    == "destination-mode destination-error",
+                    "Unrestricted help is not connected to the input")
+            require(page.locator("#destination-url").get_attribute("placeholder")
+                    == "https://hhs.marincounty.gov/services", "Destination field changed")
+
+            fill_link(page, outside)
+            wait_for_final(page, outside)
+            require(decode_qr(canvas_png(page)) == outside,
+                    "Unrestricted QR does not encode the entered HTTPS link")
+            with page.expect_download() as download_info:
+                page.locator("#download-svg").click()
+            with tempfile.TemporaryDirectory() as folder:
+                filename = Path(folder) / "outside.svg"
+                download_info.value.save_as(filename)
+                verify_svg(filename.read_text(encoding="utf-8"), outside,
+                           transparent=False, has_logo=False)
+
+            # A query parameter in the app URL must not appear in the QR payload.
+            require("dest=any" not in page.locator("#final-url").text_content(),
+                    "The app's mode parameter leaked into the QR destination")
+            for invalid, error in (
+                ("http://www.cdc.gov/flu", "Use a secure HTTPS link."),
+                ("javascript:alert(1)", "Use a secure HTTPS link."),
+                ("https://person:secret@www.cdc.gov/flu", "Remove the user name or password from this link."),
+                ("https://www.cdc.gov:8443/flu", "Remove the extra number after the website name."),
+            ):
+                expect_rejected(page, invalid, error)
+            fill_link(page, "https://marinhhs.org/health")
+            wait_for_final(page, "https://marinhhs.org/health")
+        finally:
+            page.close()
+
+    # Parameters on a *destination* URL do not change the default app mode.
+    page = fixture_page(context, None, "https://fixture.example/#start")
+    try:
+        page.locator(".qr-parameter-row").wait_for(state="attached")
+        expect_rejected(page, "https://www.cdc.gov/flu?dest=any", forbidden)
+    finally:
+        page.close()
+
+
 def make_logo_png() -> bytes:
     image = np.full((240, 240, 3), 255, dtype=np.uint8)
     cv2.rectangle(image, (24, 24), (216, 216), (59, 181, 229), thickness=-1)
@@ -601,6 +677,7 @@ def run(screenshots: Path | None = None) -> None:
             require(page.locator("#preview-ready").is_visible(),
                     "A rejected replacement image removed the valid plain QR")
 
+            verify_destination_modes(context)
             require(not problems, f"Browser page errors: {problems}")
             context.close()
 

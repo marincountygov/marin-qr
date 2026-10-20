@@ -130,6 +130,15 @@ def fixture_page(context, current_page, url: str, *, javascript: bool = True):
     if current_page:
         current_page.close()
     page = context.new_page()
+    # about:blank permits a real location.search in this no-network fixture.
+    # The mode override must read the app URL, not a mocked JS global.
+    location = urlsplit(url)
+    fixture_url = "about:blank"
+    if location.query:
+        fixture_url += f"?{location.query}"
+    if location.fragment:
+        fixture_url += f"#{location.fragment}"
+    page.goto(fixture_url)
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     # Component-only fixture: it inlines scripts/CSS, so it cannot enforce the app CSP.
     # The separate browser_security.py fixture keeps the exact policies for real CSP probes.
