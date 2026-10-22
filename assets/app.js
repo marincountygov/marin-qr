@@ -615,8 +615,10 @@
 
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.className = "secondary outline qr-remove-parameter";
-    remove.textContent = "Remove";
+    remove.className = "action-button is-danger qr-remove-parameter";
+    remove.dataset.icon = "trash";
+    remove.setAttribute("aria-label", "Remove tracking detail");
+    remove.title = "Remove tracking detail";
     remove.addEventListener("pointerdown", cancelScheduledUpdate);
     remove.addEventListener("click", () => {
       if (state.openParameterPicker === picker) picker.close(false);

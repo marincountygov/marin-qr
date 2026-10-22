@@ -450,7 +450,7 @@
   margin-top: 1rem;
 }
 
-.qr-actions button {
+.qr-actions > button.primary {
   flex: 1 1 9rem;
 }
 
