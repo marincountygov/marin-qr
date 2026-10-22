@@ -96,7 +96,7 @@
                 </details>
 
                 <div id="parameter-list" class="qr-parameter-list"></div>
-                <button id="add-parameter" type="button" class="secondary outline">Add a tracking detail</button>
+                <button id="add-parameter" type="button" class="action-button" data-icon="plus">Add a tracking detail</button>
               </div>
             </details>
 
@@ -150,7 +150,7 @@
                   <img id="image-preview" alt="Center image preview">
                   <div>
                     <p id="image-name"></p>
-                    <button id="remove-image" type="button" class="secondary outline">Remove image</button>
+                    <button id="remove-image" type="button" class="action-button is-danger" data-icon="trash" aria-label="Remove image" title="Remove image"></button>
                   </div>
                 </div>
               </div>
@@ -175,17 +175,20 @@
               </div>
 
               <div class="app-actions qr-actions">
-                <button id="download-png" type="button">Download PNG</button>
-                <button id="download-svg" type="button" class="secondary">Download SVG</button>
-                <button id="copy-png" type="button" class="secondary">Copy PNG</button>
-                <button
-                  id="copy-url"
-                  type="button"
-                  class="secondary outline"
-                  data-copy-value=""
-                  data-copy-announce="Link copied">
-                  Copy link
-                </button>
+                <button id="download-png" type="button" class="primary">Download PNG</button>
+                <div class="action-group" role="group" aria-label="Other ways to save">
+                  <button id="download-svg" type="button" class="action-button" data-icon="download">Download SVG</button>
+                  <button id="copy-png" type="button" class="action-button" data-icon="copy" aria-label="Copy PNG" title="Copy PNG"></button>
+                  <button
+                    id="copy-url"
+                    type="button"
+                    class="action-button"
+                    data-icon="link"
+                    data-copy-value=""
+                    data-copy-announce="Link copied"
+                    aria-label="Copy link"
+                    title="Copy link"></button>
+                </div>
               </div>
 
               <p class="app-help-text qr-scan-note">
