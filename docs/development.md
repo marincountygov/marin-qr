@@ -51,13 +51,43 @@ In-memory browser fixtures for environments that block Chromium from localhost:
 bash scripts/check.sh --browser-in-memory
 ```
 
-The browser workflow test needs:
+### Reproducible browser-test environment
 
-- Python 3;
-- Playwright for Python;
-- Chromium or Chrome;
-- OpenCV (`cv2`) and NumPy;
-- `pyzbar` plus the system ZBar library for the most reliable decode check. OpenCV is the fallback decoder.
+Use Python 3.13 and a **new virtual environment**. Do not install OpenCV or NumPy
+into an interpreter already containing another OpenCV build; their compiled
+binary interfaces must match. These packages are for **tests only** and are not
+needed to host the static app.
+
+On Linux or macOS, from the repository root:
+
+```bash
+python3.13 -m venv .venv
+. .venv/bin/activate
+python -m pip install --only-binary=:all: -r tests/requirements-browser.txt
+python -m playwright install chromium
+bash scripts/check.sh --browser
+```
+
+On Windows, activate the venv using `.venv\Scripts\activate` instead. On
+Ubuntu, install the ZBar system library (`sudo apt-get install libzbar0`), which
+is needed by the pinned `pyzbar` decoder. Install any Chromium system dependencies
+required by Playwright for your operating system. If an import still reports a
+NumPy ABI mismatch, delete **only the newly created `.venv`** and recreate it;
+do not downgrade or replace packages in your shared Python installation.
+
+The workflow `.github/workflows/browser-tests.yml` runs these checks on a
+separate Ubuntu 24.04 runner with Python 3.13, a fresh dependency installation,
+Playwright Chromium, and ZBar. It runs on pushes to `main`, pull requests,
+and manual dispatch. It executes `--browser`, not just the in-memory fixture,
+so a failed HTTP or CSP check remains visible. The full workflow needs GitHub
+Actions access and a runner with package-download access.
+
+The independent decoder uses OpenCV and NumPy, with `pyzbar`/ZBar for the most
+reliable decoding. All browser-test dependencies are pinned in
+`tests/requirements-browser.txt`; the static app has no Python runtime
+requirements. If local Chromium blocks `127.0.0.1` with
+`ERR_BLOCKED_BY_ADMINISTRATOR`, the `--browser-in-memory` variant can check
+components but does **not** replace the full HTTP check in CI.
 
 The in-memory shell fixture does not verify HTTP asset loading, defer timing, home-link document reload, same-origin CSP loading, or Referer delivery. Run the full local-HTTP suite or test the deployed app before release.
 

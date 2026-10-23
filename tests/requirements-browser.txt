@@ -1,0 +1,8 @@
+# Test-only versions verified together with Python 3.13.5.
+# Install into a fresh virtual environment so NumPy/OpenCV do not mix ABIs.
+# Only binary wheels are needed; the deployed app has no Python dependencies.
+numpy==2.3.5
+opencv-python-headless==4.13.0.92
+playwright==1.57.0
+# Requires the ZBar shared library (libzbar0 on Ubuntu).
+pyzbar==0.1.9
