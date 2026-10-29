@@ -53,14 +53,29 @@ def corner_alpha(png: bytes) -> int:
 
 
 def decode_qr(png: bytes) -> str:
+    """Read a QR code with zbar when it is installed, else with OpenCV.
+
+    OpenCV's detector is picky about small images and tight margins, and it differs between builds, so it gets a
+    few tries: the image as is, with a wider white margin, and scaled up with hard edges.
+    """
     image = composite_on_white(read_png(png))
     if zbar_decode is not None:
         decoded = zbar_decode(image)
         if decoded:
             return decoded[0].data.decode("utf-8")
-    value, points, _ = cv2.QRCodeDetector().detectAndDecode(image)
-    require(points is not None and value, "Generated PNG could not be decoded as a QR code")
-    return value
+    detectors = [cv2.QRCodeDetector()]
+    if hasattr(cv2, "QRCodeDetectorAruco"):
+        detectors.append(cv2.QRCodeDetectorAruco())
+    for scale in (1, 2, 3):
+        scaled = image if scale == 1 else cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_NEAREST)
+        for margin in (0, 40):
+            candidate = scaled if not margin else cv2.copyMakeBorder(
+                scaled, margin, margin, margin, margin, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+            for detector in detectors:
+                value, points, _ = detector.detectAndDecode(candidate)
+                if points is not None and value:
+                    return value
+    raise AssertionError("Generated PNG could not be decoded as a QR code")
 
 
 def svg_to_png(page, svg: str, size: int = 1200) -> bytes:

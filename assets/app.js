@@ -925,14 +925,7 @@
   }
 
   function saveBlob(blob, filename) {
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = objectUrl;
-    link.download = filename;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    marinDownload({ content: blob, name: filename });
   }
 
   async function downloadPng() {
@@ -988,6 +981,7 @@
     try {
       const pngPromise = canvasToBlob();
       const item = new ClipboardItem({ "image/png": pngPromise });
+      // marin-shared-helpers: allow (copies an image; marinCopyRich and marinCopyText are for text)
       await navigator.clipboard.write([item]);
       announce("PNG copied.");
     } catch (error) {
