@@ -440,8 +440,9 @@ def run(screenshots: Path | None = None) -> None:
             second_trigger.press("ArrowDown")
             second_search = second.locator(".qr-parameter-picker__search")
             second_search.wait_for(state="visible")
-            require(second_search.evaluate("input => document.activeElement === input"),
-                    "Parameter filter did not receive keyboard focus")
+            # Focus moves a moment after the list opens, so wait for it instead of reading it at once (a busy machine is slower).
+            from playwright.sync_api import expect
+            expect(second_search, "Parameter filter did not receive keyboard focus").to_be_focused(timeout=5000)
             second_search.fill("channel")
             require(second.locator(".qr-parameter-picker__option:visible").count() == 1,
                     "Type-to-filter did not narrow the parameter list")
